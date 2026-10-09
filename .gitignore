@@ -1,5 +1,6 @@
 
 ckpt/
+.vscode/
 **/__pycache__
 logs/
 **/debug*
