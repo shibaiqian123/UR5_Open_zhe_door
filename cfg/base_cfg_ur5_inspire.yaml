@@ -1,0 +1,39 @@
+exp_name: ur5_inspire
+shm_pth: shm_v3.yaml
+resume: null
+pretrain: null
+test_only: false
+save_pose: false
+save_video: false
+seed: 1234
+torch_deterministic: false
+device_type: cuda
+device_id: 0
+graphics_device_id: -1
+physics_engine: physx
+headless: true
+log:
+  mode:
+  - screen
+  log_root: ./logs
+  group: null
+  id: null
+  wandb:
+    project: partmanip
+    entity: pose-rl
+sim:
+  substeps: 4
+  physx:
+    num_threads: 8
+    solver_type: 1
+    num_subscenes: 8
+    num_position_iterations: 16
+    num_velocity_iterations: 0
+    contact_offset: 0.005
+    rest_offset: 0.0
+    friction_offset_threshold: 0.01
+    friction_correlation_distance: 0.00625
+    bounce_threshold_velocity: 0.1
+    max_depenetration_velocity: 1.0
+    default_buffer_size_multiplier: 8.0
+    max_gpu_contact_pairs: 1048576

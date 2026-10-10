@@ -1,0 +1,35 @@
+algo: ppo
+obs_mode: normal_state
+add_proprio_obs: false
+num_envs: 64
+max_iterations: 200000
+n_steps: 8
+n_updates: 5
+n_minibatches: 8
+eval_round: 1
+eval_frequence: 5000
+save_frequence: 5000
+lr_schedule: fixed
+lr: 5.0e-05
+desired_kl: 0.1
+epsilon_clip: 0.2
+gamma: 0.99
+lam: 0.95
+sampler: sequential
+tricks:
+  mini_adv_norm: false
+  whole_adv_norm: false
+  use_state_norm: true
+  use_clipped_value_loss: false
+  use_grad_clip: true
+  max_grad_norm: 0.5
+model:
+  action_std: 0.5
+  action_activate: tanh
+  network:
+    name: MLP
+    hid_dim:
+    - 512
+    - 512
+    - 512
+    activation: tanh
