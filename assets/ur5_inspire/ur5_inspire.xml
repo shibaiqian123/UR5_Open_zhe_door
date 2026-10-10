@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<mujoco model="ur5_inspire">
+  <!-- Independent MJCF for reading/viewing. Isaac Gym trains using robot_ur5_inspire.urdf. ctrl[0:6]: UR5 joint radians; ctrl[6]: EG2 opening radians (0 closed, 0.82 open). These are NOT the seven policy Cartesian actions. -->
+  <!-- &#38405;&#35835;&#39034;&#24207;&#65306;asset &#32593;&#26684; &#8594; worldbody &#26426;&#26800;&#33218;&#19982;&#22841;&#29226; &#8594; equality &#20116;&#20010;&#36319;&#38543;&#20851;&#33410; &#8594; actuator &#19971;&#36335;&#39537;&#21160; &#8594; keyframe &#20004;&#20010;&#20219;&#21153;&#21021;&#22987;&#23039;&#24577;&#12290;&#38271;&#24230;&#21333;&#20301;&#31859;&#65292;&#35282;&#24230;&#21333;&#20301;&#24359;&#24230;&#65307;&#24213;&#24231;&#22266;&#23450;&#12290;&#26426;&#22120;&#20154;&#20869;&#37096;&#30896;&#25758;&#20851;&#38381;&#65292;&#19982;&#22320;&#38754;/&#22806;&#37096;&#29289;&#20307;&#30896;&#25758;&#20445;&#30041;&#12290; -->
+  <compiler angle="radian" autolimits="true" inertiafromgeom="false"/>
+  <option timestep="0.001" integrator="implicitfast" gravity="0 0 -9.81" iterations="100"/>
+  <default>
+    <joint damping="0.05" armature="0.001"/>
+    <geom friction="1 0.01 0.001" contype="1" conaffinity="2" rgba="0.65 0.68 0.72 1"/>
+  </default>
+  <asset>
+    <mesh name="mesh_0" file="../ur5/ur5_description/meshes/ur5/collision/base.stl"/>
+    <mesh name="mesh_1" file="../ur5/ur5_description/meshes/ur5/collision/shoulder.stl"/>
+    <mesh name="mesh_2" file="../ur5/ur5_description/meshes/ur5/collision/upperarm.stl"/>
+    <mesh name="mesh_3" file="../ur5/ur5_description/meshes/ur5/collision/forearm.stl"/>
+    <mesh name="mesh_4" file="../ur5/ur5_description/meshes/ur5/collision/wrist1.stl"/>
+    <mesh name="mesh_5" file="../ur5/ur5_description/meshes/ur5/collision/wrist2.stl"/>
+    <mesh name="mesh_6" file="../ur5/ur5_description/meshes/ur5/collision/wrist3.stl"/>
+    <mesh name="mesh_7" file="meshes_ur5_inspire/baselink_ur5_inspire.obj"/>
+    <mesh name="mesh_8" file="meshes_ur5_inspire/outer_link_ur5_inspire.obj"/>
+    <mesh name="mesh_9" file="meshes_ur5_inspire/pad_ur5_inspire.obj"/>
+    <mesh name="mesh_10" file="meshes_ur5_inspire/inner_link_ur5_inspire.obj"/>
+    <mesh name="mesh_11" file="meshes_ur5_inspire/inner_link_mirror_ur5_inspire.obj"/>
+    <mesh name="mesh_12" file="meshes_ur5_inspire/outer_link_mirror_ur5_inspire.obj"/>
+    <mesh name="mesh_13" file="meshes_ur5_inspire/pad_mirror_ur5_inspire.obj"/>
+  </asset>
+  <worldbody>
+    <light pos="0 -1 2" dir="0 0 -1"/>
+    <geom name="ground_ur5_inspire" type="plane" size="2 2 0.1" contype="2" conaffinity="1" rgba="0.2 0.25 0.3 1"/>
+    <camera name="overview_ur5_inspire" pos="1.4 -1.4 1" xyaxes="0.707 0.707 0 -0.3 0.3 0.905"/>
+    <body name="base_link">
+      <inertial pos="0.0 0.0 0.0" mass="4.0" fullinertia="0.00443333156 0.00443333156 0.0072 0.0 0.0 0.0"/>
+      <geom name="base_link_geom0" type="mesh" mesh="mesh_0"/>
+      <body name="shoulder_link" pos="0.0 0.0 0.089159" euler="0.0 0.0 0.0">
+        <joint name="shoulder_pan_joint" type="hinge" axis="0 0 1" range="-3.14159265359 3.14159265359"/>
+        <inertial pos="0.0 0.0 0.0" mass="3.7" fullinertia="0.010267495893 0.010267495893 0.00666 0.0 0.0 0.0"/>
+        <geom name="shoulder_link_geom0" type="mesh" mesh="mesh_1"/>
+        <body name="upper_arm_link" pos="0.0 0.13585 0.0" euler="0.0 1.57079632679 0.0">
+          <joint name="shoulder_lift_joint" type="hinge" axis="0 1 0" range="-3.14159265359 3.14159265359"/>
+          <inertial pos="0.0 0.0 0.28" mass="8.393" fullinertia="0.22689067591 0.22689067591 0.0151074 0.0 0.0 0.0"/>
+          <geom name="upper_arm_link_geom0" type="mesh" mesh="mesh_2"/>
+          <body name="forearm_link" pos="0.0 -0.1197 0.425" euler="0.0 0.0 0.0">
+            <joint name="elbow_joint" type="hinge" axis="0 1 0" range="-3.14159265359 3.14159265359"/>
+            <inertial pos="0.0 0.0 0.25" mass="2.275" fullinertia="0.049443313556 0.049443313556 0.004095 0.0 0.0 0.0"/>
+            <geom name="forearm_link_geom0" type="mesh" mesh="mesh_3"/>
+            <body name="wrist_1_link" pos="0.0 0.0 0.39225" euler="0.0 1.57079632679 0.0">
+              <joint name="wrist_1_joint" type="hinge" axis="0 1 0" range="-3.14159265359 3.14159265359"/>
+              <inertial pos="0.0 0.0 0.0" mass="1.219" fullinertia="0.111172755531 0.111172755531 0.21942 0.0 0.0 0.0"/>
+              <geom name="wrist_1_link_geom0" type="mesh" mesh="mesh_4"/>
+              <body name="wrist_2_link" pos="0.0 0.093 0.0" euler="0.0 0.0 0.0">
+                <joint name="wrist_2_joint" type="hinge" axis="0 0 1" range="-3.14159265359 3.14159265359"/>
+                <inertial pos="0.0 0.0 0.0" mass="1.219" fullinertia="0.111172755531 0.111172755531 0.21942 0.0 0.0 0.0"/>
+                <geom name="wrist_2_link_geom0" type="mesh" mesh="mesh_5"/>
+                <body name="wrist_3_link" pos="0.0 0.0 0.09465" euler="0.0 0.0 0.0">
+                  <joint name="wrist_3_joint" type="hinge" axis="0 1 0" range="-3.14159265359 3.14159265359"/>
+                  <inertial pos="0.0 0.0 0.0" mass="0.1879" fullinertia="0.0171364731454 0.0171364731454 0.033822 0.0 0.0 0.0"/>
+                  <geom name="wrist_3_link_geom0" type="mesh" mesh="mesh_6"/>
+                  <body name="tool0" pos="0 0.0823 0" euler="-1.57079632679 0 0">
+                    <!-- UR5 tool0 &#21040; EG2 &#24213;&#24231;&#30340;&#22266;&#23450;&#23433;&#35013;&#21464;&#25442;&#65307;&#24403;&#21069;&#20026;&#30452;&#25509;&#23545;&#25509;&#65292;&#26080;&#34394;&#26500;&#36716;&#25509;&#20214;&#12290;&#20462;&#25913;&#29983;&#25104;&#33050;&#26412;&#30340; MOUNT_XYZ/MOUNT_RPY &#21518;&#37325;&#26032;&#29983;&#25104;&#12290; -->
+                    <body name="inspire_gripper_base" pos="0 0 0" euler="0 0 0">
+                      <inertial pos="1.5645E-05 -4.1838E-06 0.038" mass="0.072633" fullinertia="5.095E-05 6.0883E-05 1.933E-05 -7.3167E-13 2.0229E-08 -4.5583E-09"/>
+                      <geom name="inspire_gripper_base_geom0" type="mesh" mesh="mesh_7"/>
+                      <body name="inspire_left_outer_link" pos="-0.04 -0.009 0.079" euler="0 0 0">
+                        <joint name="inspire_gripper_joint" type="hinge" axis="0 -1 0" range="0 0.82"/>
+                        <inertial pos="0.0087669 0.009 0.013992" mass="0.0024292" fullinertia="5.1061E-07 5.7398E-07 2.6747E-07 -8.6739E-19 -2.508E-07 -1.3667E-18"/>
+                        <geom name="inspire_left_outer_link_geom0" type="mesh" mesh="mesh_8"/>
+                        <body name="inspire_left_pad" pos="0.0223 0.003 0.035591" euler="0 0 0">
+                          <joint name="inspire_left_pad_joint" type="hinge" axis="0 1 0" range="0 0.82"/>
+                          <inertial pos="0.011864 0.006 0.011367" mass="0.0045068" fullinertia="5.1288E-07 5.3203E-07 2.009E-07 -9.8137E-14 -9.4703E-08 -6.212E-14"/>
+                          <geom name="inspire_left_pad_geom0" type="mesh" mesh="mesh_9"/>
+                          <body name="left_tip_ur5_inspire" pos="0.0177 0.006 0.015" euler="0 0 1.5707963267948966"/>
+                        </body>
+                      </body>
+                      <body name="inspire_left_inner_link" pos="-0.03 -0.009 0.081" euler="0 0 0">
+                        <joint name="inspire_left_inner_joint" type="hinge" axis="0 -1 0" range="0 0.82"/>
+                        <inertial pos="0.0087435 0.009 0.013955" mass="0.0038971" fullinertia="5.6941E-07 6.2305E-07 3.0871E-07 -1.0711E-18 -2.6891E-07 -1.6845E-18"/>
+                        <geom name="inspire_left_inner_link_geom0" type="mesh" mesh="mesh_10"/>
+                      </body>
+                      <body name="inspire_right_inner_link" pos="0.03 -0.009 0.081" euler="0 0 0">
+                        <joint name="inspire_right_inner_joint" type="hinge" axis="0 1 0" range="0 0.82"/>
+                        <inertial pos="-0.0087435 0.009 0.013955" mass="0.0038971" fullinertia="5.6941E-07 6.2305E-07 3.0871E-07 1.0666E-18 2.6891E-07 -1.8084E-18"/>
+                        <geom name="inspire_right_inner_link_geom0" type="mesh" mesh="mesh_11"/>
+                      </body>
+                      <body name="inspire_right_outer_link" pos="0.04 -0.009 0.079" euler="0 0 0">
+                        <joint name="inspire_right_outer_joint" type="hinge" axis="0 1 0" range="0 0.82"/>
+                        <inertial pos="-0.0087669 0.009 0.013992" mass="0.0024292" fullinertia="5.1061E-07 5.7398E-07 2.6747E-07 -9.5279E-19 2.508E-07 7.6863E-19"/>
+                        <geom name="inspire_right_outer_link_geom0" type="mesh" mesh="mesh_12"/>
+                        <body name="inspire_right_pad" pos="-0.0223 0.003 0.035591" euler="0 0 0">
+                          <joint name="inspire_right_pad_joint" type="hinge" axis="0 -1 0" range="0 0.82"/>
+                          <inertial pos="-0.011864 0.006 0.011367" mass="0.0045068" fullinertia="5.1288E-07 5.3203E-07 2.009E-07 -9.8137E-14 9.4703E-08 6.2119E-14"/>
+                          <geom name="inspire_right_pad_geom0" type="mesh" mesh="mesh_13"/>
+                          <body name="right_tip_ur5_inspire" pos="-0.0177 0.006 0.015" euler="0 0 1.5707963267948966"/>
+                        </body>
+                      </body>
+                      <body name="inspire_eef" pos="0 0 0.14" euler="0 0 0"/>
+                      <!-- TCP &#25552;&#20379;&#32479;&#19968;&#23039;&#24577;&#65306;&#23616;&#37096; Y &#20026;&#20004;&#25351;&#20998;&#31163;&#26041;&#21521;&#65292;Z &#20026;&#25509;&#36817;&#26041;&#21521;&#12290;&#35757;&#32451;&#20013;&#30340; TCP &#20301;&#32622;&#20351;&#29992;&#24038;&#21491;&#22841;&#25345;&#38754;&#20013;&#24515;&#30340;&#24179;&#22343;&#20540;&#65292;&#20250;&#38543;&#24320;&#21512;&#21464;&#21270;&#12290; -->
+                      <body name="tcp_ur5_inspire" pos="0 0 0.14" euler="0 0 1.5707963267948966"/>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <equality>
+    <!-- EG2 one motor, five followers. Preserve the source mimic coefficients. -->
+    <joint joint1="inspire_left_inner_joint" joint2="inspire_gripper_joint" polycoef="0 1 0 0 0" solref="0.002 1"/>
+    <joint joint1="inspire_right_inner_joint" joint2="inspire_gripper_joint" polycoef="0 1 0 0 0" solref="0.002 1"/>
+    <joint joint1="inspire_right_outer_joint" joint2="inspire_gripper_joint" polycoef="0 1 0 0 0" solref="0.002 1"/>
+    <joint joint1="inspire_left_pad_joint" joint2="inspire_gripper_joint" polycoef="0 1 0 0 0" solref="0.002 1"/>
+    <joint joint1="inspire_right_pad_joint" joint2="inspire_gripper_joint" polycoef="0 1 0 0 0" solref="0.002 1"/>
+  </equality>
+  <actuator>
+    <!-- &#21069;&#20845;&#39033;&#20026; UR5 &#20851;&#33410;&#20301;&#32622;&#30446;&#26631;&#65307;&#31532;&#19971;&#39033;&#20026;&#22841;&#29226;&#20027;&#21160;&#20851;&#33410;&#65292;0 &#38381;&#21512;&#12289;0.82 &#24352;&#24320;&#12290;&#35757;&#32451;&#31574;&#30053;&#30340;&#21069;&#20845;&#32500;&#26159;&#31515;&#21345;&#23572;&#22686;&#37327;&#65292;&#24517;&#39035;&#32463;&#36807; IK&#65292;&#19981;&#33021;&#30452;&#25509;&#20889;&#20837;&#36825;&#37324;&#12290; -->
+    <position name="shoulder_pan_joint_drive" joint="shoulder_pan_joint" kp="5000" kv="150" ctrlrange="-3.14159265359 3.14159265359" forcerange="-150.0 150.0"/>
+    <position name="shoulder_lift_joint_drive" joint="shoulder_lift_joint" kp="5000" kv="150" ctrlrange="-3.14159265359 3.14159265359" forcerange="-150.0 150.0"/>
+    <position name="elbow_joint_drive" joint="elbow_joint" kp="5000" kv="150" ctrlrange="-3.14159265359 3.14159265359" forcerange="-150.0 150.0"/>
+    <position name="wrist_1_joint_drive" joint="wrist_1_joint" kp="5000" kv="150" ctrlrange="-3.14159265359 3.14159265359" forcerange="-28.0 28.0"/>
+    <position name="wrist_2_joint_drive" joint="wrist_2_joint" kp="5000" kv="150" ctrlrange="-3.14159265359 3.14159265359" forcerange="-28.0 28.0"/>
+    <position name="wrist_3_joint_drive" joint="wrist_3_joint" kp="5000" kv="150" ctrlrange="-3.14159265359 3.14159265359" forcerange="-28.0 28.0"/>
+    <position name="inspire_gripper_joint_drive" joint="inspire_gripper_joint" kp="20" kv="0.5" ctrlrange="0 0.82" forcerange="-50 50"/>
+  </actuator>
+  <keyframe>
+    <key name="grasp_cube_ur5_inspire" qpos="-0.24500048274363437 -1.6615785192113814 1.9075793355948867 -1.8167972084346111 -1.5707962024547164 2.896592063037188 0.82 0.82 0.82 0.82 0.82 0.82" ctrl="-0.24500048274363437 -1.6615785192113814 1.9075793355948867 -1.8167972084346111 -1.5707962024547164 2.896592063037188 0.82"/>
+    <key name="open_drawer_ur5_inspire" qpos="-0.5672945262073044 -0.12621308632140638 -2.1366973064866137 2.2629102758048094 1.0035032193919646 -1.570796263183765 0.82 0.82 0.82 0.82 0.82 0.82" ctrl="-0.5672945262073044 -0.12621308632140638 -2.1366973064866137 2.2629102758048094 1.0035032193919646 -1.570796263183765 0.82"/>
+  </keyframe>
+</mujoco>
