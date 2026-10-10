@@ -1,0 +1,28 @@
+{
+  "assets": {
+    "urdf_mjcf_max_error": 8.881784197001252e-16,
+    "hold_max_arm_error_rad": 0.006698052367605817,
+    "mimic_max_error_rad": 2.8652101038417754e-06,
+    "close_open_widths_m": [
+      0.001443216198664874,
+      0.06621135333615524,
+      0.0014326162907949212,
+      0.06621737420638586
+    ]
+  },
+  "reachability": {
+    "sampled_collision_free_ik_targets": 24,
+    "note": "Endpoint reachability, not a collision-free trajectory guarantee"
+  },
+  "code": {
+    "control": "PASS (reordered DOF indices, limits, coupling, IK direction, NaN rejection)",
+    "task_tensors": "PASS (43/53 dimensions, finite rewards, partial/full reset isolation)",
+    "ppo_cpu_harness": "PASS (two updates each, checkpoint roundtrip, incompatible checkpoint rejected)",
+    "isaac_gym_simulation": "NOT RUN: unavailable; CPU harness does not validate PhysX"
+  },
+  "source_preservation": {
+    "checked_original_files": 313,
+    "changed": [],
+    "excluded": "VS Code runtime database files (not edited by this implementation)"
+  }
+}
