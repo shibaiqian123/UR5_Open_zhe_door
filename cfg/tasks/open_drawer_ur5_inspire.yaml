@@ -1,0 +1,75 @@
+task: open_drawer_ur5_inspire
+maxEpisodeLength: 200
+add_mask: false
+explore_step: 40
+succ_value: null
+obs_mode:
+  normal_state: 53
+  proprio_state: 31
+  tsdf:
+    size: 2
+    resolution: 50
+    origin:
+    - -1
+    - -1
+    - 0.05
+  depth_pc: 3072
+  depth_sparse: 4096
+cam:
+  look_at:
+  - 0.4
+  - 0
+  - 0.3
+  radius: 1.5
+asset:
+  assetRoot: assets
+  splits: train
+  reset_range: 0.015
+  object_root:
+  - 0.54
+  - 0
+  - 0.35
+  - 0
+  - 0
+  - 0
+  - 1
+  use_test_object: true
+  object_scale: 1.0
+  drawer_dataset: objs/drawer
+  reset_yaw: 0.05
+  drawer_damping: 2.0
+  drawer_friction: 0.1
+robot:
+  name: ur5_inspire
+  assetFile: ur5_inspire/robot_ur5_inspire.urdf
+  root:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 1
+  driveMode: ik
+  arm_positions:
+  - -0.5672945262073044
+  - -0.12621308632140638
+  - -2.1366973064866137
+  - 2.2629102758048094
+  - 1.0035032193919646
+  - -1.570796263183765
+  gripper_open: 0.82
+  arm_stiffness: 5000.0
+  arm_damping: 150.0
+  gripper_stiffness: 20.0
+  gripper_damping: 0.5
+  translation_step: 0.005
+  rotation_step: 0.02
+  ik_damping: 0.05
+  arm_speed: 1.0
+  gripper_speed: 1.0
+clipObservations: 1000.0
+clipActions: 1.0
+random_reset: true
+controlFrequencyInv: 2
+envSpacing: 2.0

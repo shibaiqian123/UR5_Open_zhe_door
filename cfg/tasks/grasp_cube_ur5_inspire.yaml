@@ -1,0 +1,75 @@
+task: grasp_cube_ur5_inspire
+maxEpisodeLength: 200
+add_mask: false
+explore_step: 40
+succ_value: 500
+obs_mode:
+  normal_state: 43
+  proprio_state: 31
+  tsdf:
+    size: 0.5
+    resolution: 50
+    origin:
+    - -0.25
+    - -0.25
+    - -0.0503
+  depth_pc: 3072
+  depth_sparse: 4096
+  rgb_img: 27648
+  depth_img: 9216
+cam:
+  look_at:
+  - 0.4
+  - 0
+  - 0.3
+  radius: 0.8
+asset:
+  assetRoot: assets
+  reset_range: 0.015
+  object_root:
+  - 0.45
+  - 0
+  - 0.025
+  - 0
+  - 0
+  - 0
+  - 1
+  cube_file: ur5_inspire/objects_ur5_inspire/cube_ur5_inspire.urdf
+  goal:
+  - 0.45
+  - 0
+  - 0.2
+robot:
+  name: ur5_inspire
+  assetFile: ur5_inspire/robot_ur5_inspire.urdf
+  root:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 1
+  driveMode: ik
+  arm_positions:
+  - -0.24500048274363437
+  - -1.6615785192113814
+  - 1.9075793355948867
+  - -1.8167972084346111
+  - -1.5707962024547164
+  - 2.896592063037188
+  gripper_open: 0.82
+  arm_stiffness: 5000.0
+  arm_damping: 150.0
+  gripper_stiffness: 20.0
+  gripper_damping: 0.5
+  translation_step: 0.005
+  rotation_step: 0.02
+  ik_damping: 0.05
+  arm_speed: 1.0
+  gripper_speed: 1.0
+clipObservations: 1000.0
+clipActions: 1.0
+random_reset: true
+controlFrequencyInv: 2
+envSpacing: 2.0
