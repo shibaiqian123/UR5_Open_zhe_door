@@ -78,8 +78,12 @@ def build_urdf():
             mirror_obj(source,target,scale); mesh.attrib.pop('scale',None)
             mesh.set('filename',str(target.relative_to(OUT)))
         else:
-            import os
-            mesh.set('filename',os.path.relpath(source,OUT))
+            # Bundle runtime meshes: assets/ur5 may be an unpopulated gitlink
+            # in another checkout. Source assets are only needed to rebuild.
+            import shutil
+            target=meshdir/('ur5_'+source.stem+'_ur5_inspire.stl')
+            shutil.copyfile(source,target)
+            mesh.set('filename',str(target.relative_to(OUT)))
     robot.insert(0,E.Comment(' Fixed UR5 + Inspire EG2-4C2. SI units. q=0 closed, q=0.82 open. Mount transform is configured in build_assets_ur5_inspire.py. '))
     write_xml(robot,OUT/'robot_ur5_inspire.urdf')
     return robot

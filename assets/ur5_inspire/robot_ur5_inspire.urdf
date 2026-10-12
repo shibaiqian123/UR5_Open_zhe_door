@@ -4,7 +4,7 @@
   <link name="base_link">
     <visual>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/base.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_base_ur5_inspire.stl"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -12,7 +12,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/base.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_base_ur5_inspire.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -32,7 +32,7 @@
   <link name="shoulder_link">
     <visual>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/shoulder.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_shoulder_ur5_inspire.stl"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -40,7 +40,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/shoulder.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_shoulder_ur5_inspire.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -60,7 +60,7 @@
   <link name="upper_arm_link">
     <visual>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/upperarm.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_upperarm_ur5_inspire.stl"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -68,7 +68,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/upperarm.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_upperarm_ur5_inspire.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -88,7 +88,7 @@
   <link name="forearm_link">
     <visual>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/forearm.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_forearm_ur5_inspire.stl"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -96,7 +96,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/forearm.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_forearm_ur5_inspire.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -116,7 +116,7 @@
   <link name="wrist_1_link">
     <visual>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/wrist1.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_wrist1_ur5_inspire.stl"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -124,7 +124,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/wrist1.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_wrist1_ur5_inspire.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -144,7 +144,7 @@
   <link name="wrist_2_link">
     <visual>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/wrist2.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_wrist2_ur5_inspire.stl"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -152,7 +152,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/wrist2.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_wrist2_ur5_inspire.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -172,7 +172,7 @@
   <link name="wrist_3_link">
     <visual>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/wrist3.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_wrist3_ur5_inspire.stl"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -180,7 +180,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="../ur5/ur5_description/meshes/ur5/collision/wrist3.stl"/>
+        <mesh filename="meshes_ur5_inspire/ur5_wrist3_ur5_inspire.stl"/>
       </geometry>
     </collision>
     <inertial>

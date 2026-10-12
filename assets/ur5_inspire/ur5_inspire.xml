@@ -9,13 +9,13 @@
     <geom friction="1 0.01 0.001" contype="1" conaffinity="2" rgba="0.65 0.68 0.72 1"/>
   </default>
   <asset>
-    <mesh name="mesh_0" file="../ur5/ur5_description/meshes/ur5/collision/base.stl"/>
-    <mesh name="mesh_1" file="../ur5/ur5_description/meshes/ur5/collision/shoulder.stl"/>
-    <mesh name="mesh_2" file="../ur5/ur5_description/meshes/ur5/collision/upperarm.stl"/>
-    <mesh name="mesh_3" file="../ur5/ur5_description/meshes/ur5/collision/forearm.stl"/>
-    <mesh name="mesh_4" file="../ur5/ur5_description/meshes/ur5/collision/wrist1.stl"/>
-    <mesh name="mesh_5" file="../ur5/ur5_description/meshes/ur5/collision/wrist2.stl"/>
-    <mesh name="mesh_6" file="../ur5/ur5_description/meshes/ur5/collision/wrist3.stl"/>
+    <mesh name="mesh_0" file="meshes_ur5_inspire/ur5_base_ur5_inspire.stl"/>
+    <mesh name="mesh_1" file="meshes_ur5_inspire/ur5_shoulder_ur5_inspire.stl"/>
+    <mesh name="mesh_2" file="meshes_ur5_inspire/ur5_upperarm_ur5_inspire.stl"/>
+    <mesh name="mesh_3" file="meshes_ur5_inspire/ur5_forearm_ur5_inspire.stl"/>
+    <mesh name="mesh_4" file="meshes_ur5_inspire/ur5_wrist1_ur5_inspire.stl"/>
+    <mesh name="mesh_5" file="meshes_ur5_inspire/ur5_wrist2_ur5_inspire.stl"/>
+    <mesh name="mesh_6" file="meshes_ur5_inspire/ur5_wrist3_ur5_inspire.stl"/>
     <mesh name="mesh_7" file="meshes_ur5_inspire/baselink_ur5_inspire.obj"/>
     <mesh name="mesh_8" file="meshes_ur5_inspire/outer_link_ur5_inspire.obj"/>
     <mesh name="mesh_9" file="meshes_ur5_inspire/pad_ur5_inspire.obj"/>
