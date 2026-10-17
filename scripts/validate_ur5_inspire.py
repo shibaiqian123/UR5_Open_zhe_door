@@ -106,6 +106,57 @@ def validate_reachability():
             assert np.linalg.norm(p-pos)<1e-4;count+=1
     return {'sampled_collision_free_ik_targets':count,'note':'Endpoint reachability, not a collision-free trajectory guarantee'}
 
+def validate_policy_distribution():
+    """Check the actual distributions built by all three policy code paths."""
+    import torch
+    from unittest.mock import patch
+    from torch.distributions import MultivariateNormal, kl_divergence
+    import actor_critic_ur5_inspire as policy
+
+    torch.set_num_threads(1)
+    torch.manual_seed(73)
+    cfg={'network':{'name':'MLP','hid_dim':[32,32],'activation':'tanh'},
+         'action_std':0.5,'clipAction':1.0,'action_activate':'tanh'}
+    model=policy.ActorCritic(43,7,cfg)
+    with torch.no_grad():
+        for parameter in model.actor.parameters():
+            parameter.zero_()
+    obs=torch.zeros(32,43)
+    captured=[]
+
+    def capture(*args,**kwargs):
+        distribution=MultivariateNormal(*args,**kwargs)
+        captured.append(distribution)
+        return distribution
+
+    with patch.object(policy,'MultivariateNormal',side_effect=capture):
+        actions,old_log_prob,_,_,_=model.random_act_cri(obs)
+        assert actions.abs().max()<0.99, 'Use non-saturated actions for inverse tanh'
+        new_log_prob,_,_,_,_=model.update_act_cri(obs,actions)
+        model.random_act(obs)
+    assert len(captured)==3
+    for distribution in captured:
+        torch.testing.assert_close(distribution.stddev,torch.full((32,7),0.5))
+        torch.testing.assert_close(distribution.variance,torch.full((32,7),0.25))
+    torch.testing.assert_close(old_log_prob,new_log_prob,rtol=1e-5,atol=1e-5)
+
+    # Exercise nonuniform variances and changed means with the real policy distributions.
+    with torch.no_grad():
+        model.log_std.copy_(torch.linspace(-1.2,0.2,7))
+    with patch.object(policy,'MultivariateNormal',side_effect=capture):
+        _,_,_,mu,log_std=model.update_act_cri(obs,actions)
+    old=captured[0]
+    current=MultivariateNormal(mu+torch.linspace(-0.3,0.3,7),
+                              scale_tril=captured[-1].scale_tril)
+    old_log_std=old.stddev.log()
+    kl=(log_std-old_log_std+
+        (old_log_std.exp().square()+(old.mean-current.mean).square())/
+        (2*log_std.exp().square())-0.5).sum(-1)
+    torch.testing.assert_close(kl,kl_divergence(old,current),rtol=1e-5,atol=1e-5)
+    return {'policy_distribution':'PASS (all three paths: std=0.5, variance=0.25)',
+            'log_probability':'PASS (sampling/update agree before parameter updates)',
+            'kl':'PASS (PPO formula matches distribution KL with changed means/stds)'}
+
 def validate_control_and_ppo():
     import torch
     torch.set_num_threads(1)
@@ -236,6 +287,7 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--skip-reachability',action='store_true');args=parser.parse_args()
     report={'assets':validate_assets()}
     if not args.skip_reachability:report['reachability']=validate_reachability()
+    report['policy']=validate_policy_distribution()
     report['code']=validate_control_and_ppo()
     path=OUT/'validation_ur5_inspire.json';path.write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
 

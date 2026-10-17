@@ -36,8 +36,8 @@ class ActorCritic(nn.Module):
     def random_act_cri(self, observations):
         actions_mean = self.actor(observations)
 
-        covariance = torch.diag(self.log_std.exp() * self.log_std.exp())
-        distribution = MultivariateNormal(actions_mean, scale_tril=covariance)
+        # scale_tril is the covariance factor: diagonal standard deviations.
+        distribution = MultivariateNormal(actions_mean, scale_tril=torch.diag(self.log_std.exp()))
 
         actions = distribution.sample()
         actions_log_prob = distribution.log_prob(actions)
@@ -49,8 +49,8 @@ class ActorCritic(nn.Module):
     def random_act(self, observations):
         actions_mean = self.actor(observations)     # (num_envs,tsdf_res^3)->(num_envs,7)
 
-        covariance = torch.diag(self.log_std.exp() * self.log_std.exp())
-        distribution = MultivariateNormal(actions_mean, scale_tril=covariance)
+        # scale_tril is the covariance factor: diagonal standard deviations.
+        distribution = MultivariateNormal(actions_mean, scale_tril=torch.diag(self.log_std.exp()))
         actions = distribution.sample()
 
         return self.action_activation(actions.detach())
@@ -71,8 +71,8 @@ class ActorCritic(nn.Module):
     def update_act_cri(self, observations, actions):
         actions_mean = self.actor(observations)
 
-        covariance = torch.diag(self.log_std.exp() * self.log_std.exp())
-        distribution = MultivariateNormal(actions_mean, scale_tril=covariance)
+        # scale_tril is the covariance factor: diagonal standard deviations.
+        distribution = MultivariateNormal(actions_mean, scale_tril=torch.diag(self.log_std.exp()))
 
         actions_log_prob = distribution.log_prob(self.action_deactivation(actions))
         entropy = distribution.entropy()
