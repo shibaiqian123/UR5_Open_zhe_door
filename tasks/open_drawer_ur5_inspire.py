@@ -345,6 +345,7 @@ class open_drawer_ur5_inspire(BaseTask):
         root_ind = self.global_indices[env_ids, :].flatten()
         self.gym.set_actor_root_state_tensor_indexed(self.sim, gymtorch.unwrap_tensor(reset_root_states),
                             gymtorch.unwrap_tensor(root_ind), len(root_ind))     
+        self.robot.reset_targets(env_ids)
         self.progress_buf[env_ids] = 0
         self.success[env_ids] = 0
         # self.last_succ_time[env_ids] = 0

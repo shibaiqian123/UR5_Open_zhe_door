@@ -161,13 +161,22 @@ def validate_control_and_ppo():
     import torch
     torch.set_num_threads(1)
     torch.manual_seed(1234)
-    from load_robot_ur5_inspire import ur5_inspire,ARM_NAMES,MASTER
+    from load_robot_ur5_inspire import ur5_inspire,ARM_NAMES,MASTER,collision_filters
     # Only supply the AssetOptions type for loader unit testing. No simulated physics.
     original=sys.modules.get('isaacgym')
     stub=types.ModuleType('isaacgym');stub.gymapi=types.SimpleNamespace(AssetOptions=types.SimpleNamespace)
     stub.gymtorch=types.SimpleNamespace(unwrap_tensor=lambda x:x)
     sys.modules['isaacgym']=stub
     robot_xml=E.parse(OUT/'robot_ur5_inspire.urdf').getroot()
+    masks,excluded=collision_filters(robot_xml)
+    assert masks['inspire_left_pad'] & masks['inspire_right_pad']==0
+    assert masks['upper_arm_link'] & masks['inspire_left_pad']==0
+    assert masks['upper_arm_link'] & masks['forearm_link']!=0
+    assert masks['inspire_gripper_base'] & masks['wrist_3_link']!=0
+    assert all(mask & 1==0 for mask in masks.values()), 'Robot/object collision disabled'
+    # Every collision body must be represented, independent of importer ordering.
+    assert set(masks)=={n.get('name') for n in robot_xml.findall('link') if n.find('collision') is not None}
+
     joints=[j for j in robot_xml.findall('joint') if j.get('type')!='fixed'][::-1]
     names={j.get('name'):i for i,j in enumerate(joints)}
     bodies={l.get('name'):i for i,l in enumerate(robot_xml.findall('link'))}
@@ -180,6 +189,36 @@ def validate_control_and_ppo():
             return {key:np.array([float(j.find('limit').get(key)) for j in joints],dtype=np.float32) for key in ('lower','upper')}
     cfg=yaml_read(ROOT/'cfg/tasks/grasp_cube_ur5_inspire.yaml')
     robot=ur5_inspire(LoaderHarness(),cfg['robot'],1/30,3,'cpu');robot.preload(None,ROOT/'assets')
+    class ShapeHarness(LoaderHarness):
+        def __init__(self):
+            self.shapes=[];self.ranges=[]
+            for name in bodies:
+                count=2 if name in masks else 0
+                self.ranges.append(types.SimpleNamespace(start=len(self.shapes),count=count))
+                self.shapes.extend(types.SimpleNamespace(filter=-1,friction=0.) for _ in range(count))
+        def get_asset_dof_properties(self,*args):
+            props=super().get_asset_dof_properties()
+            for key in ('driveMode','effort','stiffness','damping'):props[key]=np.zeros(12)
+            return props
+        def create_actor(self,*args):return 0
+        def set_actor_dof_properties(self,env,actor,props):self.props=props
+        def get_actor_rigid_shape_properties(self,*args):return self.shapes
+        def get_actor_rigid_body_shape_indices(self,*args):return self.ranges
+        def set_actor_rigid_shape_properties(self,env,actor,shapes):self.shapes=shapes
+        def set_rigid_body_segmentation_id(self,*args):pass
+        def find_actor_rigid_body_index(self,env,actor,name,domain):return bodies[name]
+    shape_gym=ShapeHarness()
+    stub.gymapi.Transform=types.SimpleNamespace
+    stub.gymapi.Vec3=lambda *args:args;stub.gymapi.Quat=lambda *args:args
+    stub.gymapi.DOF_MODE_POS=1;stub.gymapi.DOMAIN_ENV=0
+    robot.gym=shape_gym;robot.load_to_env(None,0)
+    np.testing.assert_allclose(shape_gym.props['effort'],robot.effort.numpy())
+    for name,index in bodies.items():
+        shape_range=shape_gym.ranges[index]
+        for shape in shape_gym.shapes[shape_range.start:shape_range.start+shape_range.count]:
+            assert shape.filter==masks[name] and shape.filter & 1==0
+            assert shape.friction==1.0
+
     for attr,name in [('ltip_rb_index','left_tip_ur5_inspire'),('rtip_rb_index','right_tip_ur5_inspire'),('tcp_rb_index','tcp_ur5_inspire')]:setattr(robot,attr,bodies[name])
     model=mujoco.MjModel.from_xml_path(str(OUT/'ur5_inspire.xml'));data=mujoco.MjData(model)
     mujoco.mj_resetDataKeyframe(model,data,0);mujoco.mj_forward(model,data)
@@ -254,6 +293,21 @@ def validate_control_and_ppo():
         assert obj.gym.calls[1][1].tolist()==[2,3]
         obj.reset_idx(torch.ones(3,dtype=torch.bool))
         assert torch.equal(obj.pos_act,robot.default_dof_pos.repeat(3,1))
+    # A blocked finger must not erase its commanded target on the next step.
+    robot.reset_targets(torch.arange(3))
+    close=torch.zeros((3,7));close[:,6]=-1
+    first=robot.control(close)[:,robot.master_id].clone()
+    second=robot.control(close)[:,robot.master_id].clone()
+    assert torch.all(second<first), 'Gripper command follows measured q instead of persistent target'
+    held=robot.control(torch.zeros_like(close))[:,robot.master_id].clone()
+    assert torch.equal(held,second), 'Zero gripper action must hold the target'
+    robot.reset_targets(torch.tensor([1]))
+    assert robot.master_target[1]==robot.default_dof_pos[robot.master_id]
+    assert torch.equal(robot.master_target[[0,2]],second[[0,2]])
+    assert torch.all(robot.effort>0) and robot.effort.numel()==12
+    for _ in range(40):robot.control(close)
+    assert torch.all(robot.master_target>=robot.lower[robot.master_id])
+    assert torch.all(robot.action_tensor>=robot.lower)
     if original is not None:sys.modules['isaacgym']=original
     else:del sys.modules['isaacgym']
     # A small tensor environment verifies the real PPO update + checkpoint interface.
@@ -281,13 +335,45 @@ def validate_control_and_ppo():
             checkpoint=torch.load(ac['resume']);checkpoint['robot_signature']='franka';torch.save(checkpoint,ac['resume'])
             try:ppo(TensorHarness(width),ac,logger);raise AssertionError('Franka checkpoint accepted')
             except ValueError:pass
-    return {'control':'PASS (reordered DOF indices, limits, coupling, IK direction, NaN rejection)', 'task_tensors':'PASS (43/53 dimensions, finite rewards, partial/full reset isolation)', 'ppo_cpu_harness':'PASS (two updates each, checkpoint roundtrip, incompatible checkpoint rejected)', 'isaac_gym_simulation':'NOT RUN: unavailable; CPU harness does not validate PhysX'}
+    return {'control':'PASS (indices, limits, effort, persistent targets, isolated target resets, coupling, IK, NaN rejection)', 'collision_filters':'PASS (named collision bodies, adjacent exclusions, pad contact and external collisions retained)', 'task_tensors':'PASS (43/53 dimensions, finite rewards, partial/full reset isolation)', 'ppo_cpu_harness':'PASS (two updates each, checkpoint roundtrip, incompatible checkpoint rejected)', 'isaac_gym_simulation':'NOT RUN: unavailable; CPU harness does not validate PhysX'}
+
+def validate_contact_metrics():
+    """Negative cases prevent a fallen object or GPU-only evidence passing."""
+    from validate_contact_ur5_inspire import evaluate_grasp,evaluate_stability
+    record=dict(q=np.zeros((1,12)),tcp=np.array([[.45,0,.20]]),obj=np.array([[.45,0,.20]]),
+                width=np.array([.05]),coupling=np.array([.001]),drawer=np.array([.10]),
+                pairs=[[True,True]],overlap=[.001])
+    records=[copy.deepcopy(record) for _ in range(10)]
+    checks,_=evaluate_grasp(records,records,.001,'grasp_cube','cpu')
+    assert all(checks.values())
+    checks,_=evaluate_grasp(records,records,.001,'open_drawer','cpu')
+    assert all(checks.values())
+    checks,_=evaluate_grasp(records,records,.001,'grasp_cube','cuda')
+    assert checks['bilateral_target_contact'] is None and checks['penetration'] is None
+    bad=copy.deepcopy(records);bad[-1]['obj'][0,2]=.10
+    checks,_=evaluate_grasp(bad,bad,.001,'grasp_cube','cpu')
+    assert not checks['height'] and not checks['drop'] and not checks['slip']
+    bad=copy.deepcopy(records)
+    for t in bad:t['pairs']=[[True,False]]
+    checks,_=evaluate_grasp(bad,bad,.001,'grasp_cube','cpu')
+    assert not checks['bilateral_target_contact']
+    bad=copy.deepcopy(records);bad[-1]['overlap']=[.003];bad[-1]['coupling'][0]=.03
+    checks,_=evaluate_grasp(bad,bad,.001,'grasp_cube','cpu')
+    assert not checks['penetration'] and not checks['coupling']
+    bad=copy.deepcopy(records);bad[-1]['drawer'][0]=.07
+    checks,_=evaluate_grasp(bad,bad,.001,'open_drawer','cpu')
+    assert not checks['stroke'] and not checks['retreat']
+    bad=copy.deepcopy(records);bad[-1]['q'][0,0]=.03;bad[-1]['tcp'][0,0]+=.01
+    checks,_=evaluate_stability(bad,list(range(6)),'cpu')
+    assert not checks['joint_drift'] and not checks['tcp_drift']
+    return 'PASS (missing contact, slip, drop, penetration, coupling, jitter and GPU evidence gaps)'
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--skip-reachability',action='store_true');args=parser.parse_args()
     report={'assets':validate_assets()}
     if not args.skip_reachability:report['reachability']=validate_reachability()
     report['policy']=validate_policy_distribution()
+    report['contact_metrics']=validate_contact_metrics()
     report['code']=validate_control_and_ppo()
     path=OUT/'validation_ur5_inspire.json';path.write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
 

@@ -47,7 +47,7 @@ UR5 关节顺序为 `shoulder_pan_joint`、`shoulder_lift_joint`、`elbow_joint`
 
 EG2 主动关节为 `inspire_gripper_joint`，其余五个关节跟随它。角度 0 为闭合，0.82 为张开，最大夹持面间距约 **66.2 mm**。因此模型具有 **12 个运动关节、7 路独立控制量**。
 
-Isaac Gym 每步显式设置六个夹爪关节的耦合位置目标；这是同步位置驱动，不是完整闭环连杆约束。MuJoCo 使用五个 joint equality 约束和一个夹爪执行器。机器人内部自碰撞关闭；Isaac Gym 机器人过滤位为 2，抽屉为 1，方块为 0，以保留机器人与任务物体的接触。
+Isaac Gym 每步显式设置六个夹爪关节的耦合位置目标；这是同步位置驱动，不是完整闭环连杆约束。MuJoCo 使用五个 joint equality 约束和一个夹爪执行器。Isaac Gym 默认启用选择性自碰撞：仅排除固定组件、相邻连杆和夹爪内部机械重叠对，两侧夹持面之间及机器人与物体的接触保留。机器人使用非零号过滤位，抽屉保留位 0（掩码 1），方块为 0。MuJoCo 查看资产仍采用原自碰撞设置，不能替代 PhysX 验收。
 
 左右夹持面参考点挂在 `inspire_left_pad`、`inspire_right_pad` 上；训练 TCP 的位置和线速度取两参考点的平均值，姿态和角速度使用固定夹爪坐标系，不平均四元数。TCP 的局部 Y 轴为两指分离方向，Z 轴为接近方向。平移 Jacobian 取两参考点的平均，旋转 Jacobian 取 TCP，并且只选择机械臂六轴列。
 
@@ -119,3 +119,75 @@ python train_ur5_inspire.py --taskcfg grasp_cube_ur5_inspire --resume logs/ckpts
 - 两种观测维数分别完成两轮真实 PPO 更新及检查点保存/恢复，使用的是明确标识的**张量测试环境**，不是 Isaac Gym 物理环境。
 
 仍待可用 Isaac Gym 环境验证：资产导入、PhysX 接触与 PD 参数、单/多环境物理运行、真实任务 PPO 更新及训练收敛。新测试物体也不等于原 PartManip 数据集上的性能结果。
+
+
+## PhysX 接触验证（新增，等待服务器实测）
+
+此改动只修改 UR5 专用代码。控制器保存单一夹爪目标开度，零夹爪动作保持目标；
+接触阻力不再把下一步目标拉回实测角度。局部重置只恢复对应环境的目标。
+各关节 effort 从组合 URDF 显式设置，这些数值并非经过实物标定的力矩。
+`robot.friction` 默认 1.0；原刚度、阻尼、速度及仿真接触参数未调大。
+`robot.selective_self_collision` 和 `robot.persistent_gripper_target` 默认 true。
+模型仍是同步位置驱动近似，不是完整闭环连杆。
+
+新增日志：`gripper_coupling_error`、`joint_target_error`、`gripper_opening`。
+已有模型权重结构没有变化，但接触行为已改变，正式训练使用新实验名、从头训练。
+
+### 先运行基线与稳定性检查
+
+在服务器拉取提交后，保持 `partmanip` 环境，在项目根目录执行：
+
+```bash
+python scripts/validate_contact_ur5_inspire.py --task open_drawer --device cpu --suite stability --baseline --output logs/contact_validation/drawer_baseline_cpu
+python scripts/validate_contact_ur5_inspire.py --task open_drawer --device cpu --suite stability --output logs/contact_validation/drawer_updated_cpu
+```
+
+每次使用新的输出目录，避免覆盖旧证据。`--baseline` 恢复旧碰撞过滤及基于实测开度生成目标的行为，
+用于同版本测试脚本对照；它仍显式设置 URDF effort，不是旧提交的逐字节回放。
+不要将失败归因于单一参数；先查看 `failed_checks` 和轨迹，再一次调整一类参数并重跑。
+
+### 完整验收命令
+
+以下命令分别记录两个任务、CPU/GPU、旧/新行为；单次失败后仍保存 JSON/CSV。
+这是验证矩阵，不是训练启动脚本。每个任务默认 10 次保持重置及 1 次固定位置 + 10 次随机操作。
+
+```bash
+for task in grasp_cube open_drawer; do
+  for device in cpu cuda; do
+    python scripts/validate_contact_ur5_inspire.py --task "$task" --device "$device" --suite all --baseline --output "logs/contact_validation/${task}_${device}_baseline"
+    python scripts/validate_contact_ur5_inspire.py --task "$task" --device "$device" --suite all --output "logs/contact_validation/${task}_${device}_updated"
+  done
+  python scripts/validate_contact_ur5_inspire.py --task "$task" --device cuda --suite reset --num-envs 4 --output "logs/contact_validation/${task}_reset4"
+done
+```
+
+脚本支持 `--viewer` 打开窗口、`--seed 1234`、`--trials 10`；不需要 MuJoCo、TensorBoard 或 PPO 检查点。
+单环境测试不验证跨环境重置隔离，该项标记 UNVERIFIED；4 环境 reset 测试专门验证隔离。
+当前只支持随仓库提供的方块与抽屉，不能把结果推广到原数据集所有物体。
+
+- 原始操作测试直接调用训练控制器和 PhysX stepping，绕开成功/超时自动重置。
+- 测试不会附着物体、运行中改写物体状态或驱动物体关节；只有测试之间正常重置。
+- 双指接触取自实际 pad 刚体，而非无碰撞几何的 tip 标记。CPU 要求保持阶段至少 90% 帧双指同时接触目标。
+- CPU 接触重叠阈值 2 mm；GPU 净接触力不能确认接触对或穿透，相关项目标记 UNVERIFIED，必须结合 CPU 结果。
+- 静置 1 秒后保持 3 秒：关节漂移 <=0.02 rad，TCP 漂移 <=5 mm，物体漂移 <=1 cm；重置及保持期间物体位移 <=5 cm。
+- 方块中心高度 >=0.18 m，保持 2 秒下降 <=1 cm、相对 TCP 滑移 <=1 cm。
+- 抽屉拉出 >=0.08 m，保持 2 秒回退 <=5 mm，并有双指把手接触证据。
+- 保持阶段 TCP 峰峰位移 <=5 mm，开度峰峰变化 <=2 mm，关节耦合误差 <=0.02 rad。
+
+结果文件为 `report.json`、`trajectory.csv`，包含逐次失败/未验证指标、有效机器人配置、每步关节位置速度及目标、TCP、物体位置、接触力、抽屉位移和阶段。
+PASS 返回 0，FAIL/UNVERIFIED/ERROR 返回 1；GPU 报告 UNVERIFIED 不等于程序崩溃，详细看失败项与缺失证据。
+达到目标失败可能是脚本轨迹或控制器问题，不能直接当作物体不可抓；CSV 用于区分到达失败、滑移、耦合失真和振荡。
+
+### 接触检查后运行 PPO 回归
+
+确认结果后分别跑两个任务的新实验，50 轮含保存与第 50 轮评估：
+
+```bash
+for task in grasp_cube open_drawer; do
+  python train_ur5_inspire.py --taskcfg "${task}_ur5_inspire" --algocfg ppo_ur5_inspire --algo.num_envs 4 --algo.max_iterations 50 --algo.save_frequence 25 --algo.eval_frequence 50 --exp_name "${task}_contact_v2" --log.mode screen
+done
+```
+
+这些检查只能验证有限场景下的模型和代码行为，不能证明收敛或实物表现。
+本次本地回归覆盖持久开度、局部目标重置、碰撞掩码、误判防护及 CPU 张量 PPO 保存恢复。
+真实 PhysX 基线、接触和训练回归由服务器运行后再确认，不能把本地张量测试当作物理验收。

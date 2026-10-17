@@ -8,7 +8,7 @@ n_updates: 5
 n_minibatches: 8
 eval_round: 1
 eval_frequence: 5000
-save_frequence: 5000
+save_frequence: 1000
 lr_schedule: fixed
 lr: 5.0e-05
 desired_kl: 0.1

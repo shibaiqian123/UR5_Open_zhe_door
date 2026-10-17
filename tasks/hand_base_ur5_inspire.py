@@ -251,6 +251,9 @@ class BaseTask():
             raise RuntimeError("Invalid UR5 observation shape or non-finite state")
         self.obs_buf["normal_state"] = obs.clamp(-self.clip_obs, self.clip_obs)
         self.compute_reward(actions)
+        self.extras['gripper_coupling_error'] = self.robot.coupling_error
+        self.extras['joint_target_error'] = self.robot.target_error
+        self.extras['gripper_opening'] = self.robot.gripper_length
         if not torch.isfinite(self.rew_buf).all():
             raise RuntimeError("Non-finite UR5 reward")
         return 

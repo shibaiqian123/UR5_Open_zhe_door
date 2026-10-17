@@ -68,6 +68,9 @@ robot:
   ik_damping: 0.05
   arm_speed: 1.0
   gripper_speed: 1.0
+  friction: 1.0
+  selective_self_collision: true
+  persistent_gripper_target: true
 clipObservations: 1000.0
 clipActions: 1.0
 random_reset: true
